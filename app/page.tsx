@@ -123,7 +123,10 @@ export default function Home() {
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${API_URL}/api/translator/upload/`, { ... })
+      const res = await fetch(`${API_URL}/api/translator/upload/`, { 
+        method: 'POST', 
+        body: formData 
+      });
       const data = await res.json();
       
       if (res.ok) {
@@ -137,7 +140,7 @@ export default function Home() {
       setStatusText('El servidor maestro no responde.');
     }
   };
-
+  
   return (
     // 3. NUEVO: Agregamos {outfit.className} aquí abajo para inyectar la tipografía
     <main 
