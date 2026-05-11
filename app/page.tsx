@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, MouseEvent, DragEvent } from 'react';
-// 1. NUEVO: Importamos la fuente premium de Next.js
 import { Outfit } from 'next/font/google';
 
-// 2. NUEVO: Configuramos la fuente
 const outfit = Outfit({ subsets: ['latin'] });
 
 export default function Home() {
@@ -79,6 +77,7 @@ export default function Home() {
     }
   };
 
+  // POLLING: Consultar el estado de la traducción
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (documentId && status === 'PROCESSING') {
@@ -87,16 +86,20 @@ export default function Home() {
           const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
           const res = await fetch(`${API_URL}/api/translator/status/${documentId}/`);
           const data = await res.json();
+          
           setProgress(data.progress || 0);
           setStatusText(`Estado: ${data.status_display}`);
 
           if (data.status === 'COMPLETED') {
             setStatus('COMPLETED');
+            
+            // Lógica para descarga local o Amazon S3
             if (data.translated_file_url.startsWith('http')) {
-                setDownloadUrl(data.translated_file_url); // Producción (Amazon S3)
+              setDownloadUrl(data.translated_file_url);
             } else {
-                setDownloadUrl(`http://localhost:8000${data.translated_file_url}`); // Local
+              setDownloadUrl(`${API_URL}${data.translated_file_url}`);
             }
+            
             setStatusText('¡Documento listo para ti!');
             clearInterval(interval);
           } else if (data.status === 'FAILED') {
@@ -112,6 +115,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [documentId, status]);
 
+  // UPLOAD: Subir el documento al servidor
   const handleUpload = async () => {
     if (!file) return;
     setStatus('PROCESSING');
@@ -140,9 +144,8 @@ export default function Home() {
       setStatusText('El servidor maestro no responde.');
     }
   };
-  
+
   return (
-    // 3. NUEVO: Agregamos {outfit.className} aquí abajo para inyectar la tipografía
     <main 
       onMouseMove={handleMouseMove}
       className={`min-h-screen relative flex items-center justify-center p-6 overflow-hidden bg-[#F8F9FF] selection:bg-indigo-200 ${outfit.className}`}
@@ -164,7 +167,6 @@ export default function Home() {
       {/* CONTENEDOR PRINCIPAL */}
       <div className="bg-white/30 backdrop-blur-3xl border border-white/60 rounded-[2.5rem] shadow-[0_8px_32px_rgba(31,38,135,0.06)] p-12 max-w-lg w-full relative z-10 overflow-hidden">
         
-        {/* Textos con más presencia (font-semibold en lugar de font-light) */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-semibold text-indigo-950 mb-3 tracking-tight">
             Traductor Visual
